@@ -84,6 +84,36 @@ app = Dash(__name__, external_stylesheets=[dbc.themes.FLATLY, dbc_css])
 # Construção do Layout
 app.layout = dbc.Container(children=[
 
+    # Armazenando os Datasets do projeto
+    dcc.Store(id="dataset", data=df_store),
+    dcc.Store(id="dataset_fixed", data=df_store),
+
+    # -= Linha 1 =-
+    dbc.Row([
+        dbc.Col([
+            dbc.Card([
+                dbc.CardBody([
+                    dbc.Row([
+                        dbc.Col([
+                            html.Legend("Gas Prices Analysis")
+                        ], sm=8),
+                        dbc.Col([
+                            html.I(className="fa fa-gas-pump", style={"font-size": "300%"})
+                        ], sm=4, align="center")
+                    ]),
+                    dbc.Row([
+                        dbc.Col([
+                            ThemeSwitchAIO(aio_id="theme", themes=[theme1, theme2]),
+                            html.Legend("Asimov Academy")
+                        ])
+                    ], style={"magin-top": "10px"}),
+                    dbc.Row([
+                        dbc.Button("Visite o Site", href="https://asimov.academy/", target="_blank")
+                    ], style={"margin-top": "10px"})
+                ])
+            ])
+        ], sm=4, lg=2)
+    ])
 
 
 ], fluid=True, style={"height": "100%"})
