@@ -69,6 +69,9 @@ df_store = dados.to_dict()
 #######################################################################################
 # -= CONSTRUÇÃO DO LAYOUT DO DASHBOARD =-
 
+# Definindo um estilo para todos os cards
+tab_card = {"height": "100%"}
+
 # Definindo os temas opcionais para este projeto
 template_theme1 = "flatly"
 template_theme2 = "vapor"
@@ -95,7 +98,7 @@ app.layout = dbc.Container(children=[
                 dbc.CardBody([
                     dbc.Row([
                         dbc.Col([
-                            html.Legend("Gas Prices Analysis")
+                            html.Legend("Análise de Preços de Gás")
                         ], sm=8),
                         dbc.Col([
                             html.I(className="fa fa-gas-pump", style={"font-size": "300%"})
@@ -111,8 +114,60 @@ app.layout = dbc.Container(children=[
                         dbc.Button("Visite o Site", href="https://asimov.academy/", target="_blank")
                     ], style={"margin-top": "10px"})
                 ])
-            ])
-        ], sm=4, lg=2)
+            ], style=tab_card)
+        ], sm=4, lg=2),
+        dbc.Col([
+            dbc.Card([
+                dbc.CardBody([
+                    dbc.Row([
+                        dbc.Col([
+                            html.H3(children="Máximos e Mínimos"),
+                            dcc.Graph(id="static_maxmin", config={"displayModeBar": False, "showTips": False})
+                        ])
+                    ])
+                ])
+            ], style=tab_card)
+        ], sm=8, lg=3),
+        dbc.Col([
+            dbc.Card([
+                dbc.CardBody([
+                    dbc.Row([
+                        dbc.Col([
+                            html.H6("Ano de análise:"),
+                            dcc.Dropdown(
+                                id="select_ano",
+                                value=dados.at[dados.index[3], 'ANO'],
+                                clearable=False,
+                                className="dbc",
+                                options=[
+                                    {"label": x, "value": x} for x in dados['ANO'].unique()
+                                ]
+                            )
+                        ], sm=6),
+                        dbc.Col([
+                            html.H6("Região de análise"),
+                            dcc.Dropdown(
+                                id="select_regiao",
+                                value=dados.at[dados.index[1], 'REGIÃO'],
+                                clearable=False,
+                                className="dbc",
+                                options=[
+                                    {"label": x, "value": x} for x in dados["REGIÃO"].unique()
+                                ]
+                            )
+                        ], sm=6)
+                    ]),
+                    dbc.Row([
+                        dbc.Col([
+                            dcc.Graph(id="regiaobar_graph", config={"displayModeBar": False, "showTips": False})
+                        ], sm=12, md=6),
+                        dbc.Col([
+                            dcc.Graph(id="estadobar_graph", config={"displayModeBar": False, "showTips": False})
+                        ], sm=12, md=6)
+                    ], style={"column-gap": "0px"})
+                ])
+            ], style=tab_card)
+        ], sm=12, lg=7)
     ])
 
 
