@@ -91,14 +91,14 @@ app.layout = dbc.Container(children=[
     dcc.Store(id="dataset", data=df_store),
     dcc.Store(id="dataset_fixed", data=df_store),
 
-    # -= Linha 1 =-
+    # -= LINHA 1 =-
     dbc.Row([
         dbc.Col([
             dbc.Card([
                 dbc.CardBody([
                     dbc.Row([
                         dbc.Col([
-                            html.Legend("Análise de Preços de Gás")
+                            html.Legend(children="Análise de Preços de Gás")
                         ], sm=8),
                         dbc.Col([
                             html.I(className="fa fa-gas-pump", style={"font-size": "300%"})
@@ -107,11 +107,11 @@ app.layout = dbc.Container(children=[
                     dbc.Row([
                         dbc.Col([
                             ThemeSwitchAIO(aio_id="theme", themes=[theme1, theme2]),
-                            html.Legend("Asimov Academy")
+                            html.Legend(children="Asimov Academy")
                         ])
                     ], style={"magin-top": "10px"}),
                     dbc.Row([
-                        dbc.Button("Visite o Site", href="https://asimov.academy/", target="_blank")
+                        dbc.Button(children="Visite o Site", href="https://asimov.academy/", target="_blank")
                     ], style={"margin-top": "10px"})
                 ])
             ], style=tab_card)
@@ -133,7 +133,7 @@ app.layout = dbc.Container(children=[
                 dbc.CardBody([
                     dbc.Row([
                         dbc.Col([
-                            html.H6("Ano de análise:"),
+                            html.H6(children="Ano de análise:"),
                             dcc.Dropdown(
                                 id="select_ano",
                                 value=dados.at[dados.index[3], 'ANO'],
@@ -145,7 +145,7 @@ app.layout = dbc.Container(children=[
                             )
                         ], sm=6),
                         dbc.Col([
-                            html.H6("Região de análise"),
+                            html.H6(children="Região de análise"),
                             dcc.Dropdown(
                                 id="select_regiao",
                                 value=dados.at[dados.index[1], 'REGIÃO'],
@@ -168,8 +168,94 @@ app.layout = dbc.Container(children=[
                 ])
             ], style=tab_card)
         ], sm=12, lg=7)
-    ])
+    ], class_name="g-2 my-auto"),
 
+    # -= LINHA 2 =- #
+    dbc.Row([
+        dbc.Col([
+            dbc.Card([
+                dbc.CardBody([
+                    html.H3(children="Preço x Estado"),
+                    html.H6(children="Comparação temporal entre estados"),
+                    dbc.Row([
+                        dbc.Col([
+                            dcc.Dropdown(
+                                id="select_estado0",
+                                value=[dados.at[dados.index[3], 'ESTADO'], dados.at[dados.index[13], 'ESTADO'], dados.at[dados.index[6], 'ESTADO']],
+                                clearable=False,
+                                className="dbc",
+                                multi=True,
+                                options=[
+                                    {"label": x, "value": x} for x in dados['ESTADO'].unique()
+                                ]
+                            )
+                        ], sm=10)
+                    ]),
+                    dbc.Row([
+                        dbc.Col([
+                            dcc.Graph(id="animation_graph", config={"displayModeBar": False, "showTips": False})
+                        ])
+                    ])
+                ])
+            ], style=tab_card)
+        ], sm=12, md=6, lg=4),
+        dbc.Col([
+            dbc.Card([
+                dbc.CardBody([
+                    html.H3(children="Comparação Direta"),
+                    html.H6(children="Qual preço é o menor em um dado período de tempo?"),
+                    dbc.Row([
+                        dbc.Col([
+                            dcc.Dropdown(
+                                id="select_estado1",
+                                value=dados.at[dados.index[3], "ESTADO"],
+                                clearable=False,
+                                className="dbc",
+                                options=[
+                                    {"label": x, "value": x} for x in dados["ESTADO"].unique()
+                                ]
+                            )
+                        ], sm=10, md=5),
+                        dbc.Col([
+                            dcc.Dropdown(
+                                id="select_estado2",
+                                value=dados.at[dados.index[1], "ESTADO"],
+                                clearable=False,
+                                className="dbc",
+                                options=[
+                                    {"label": x, "value": x} for x in dados["ESTADO"].unique()
+                                ]
+                            )
+                        ], sm=10, md=6)
+                    ], style={"margin-top": "20px"}, justify="center"),
+                    dcc.Graph(id="direct_comparison_graph", config={"displayModeBar": False, "showTips": False}),
+                    html.P(id="desc_comparison", style={"color": "gray", "font-size": "80%"})
+                ])
+            ], style=tab_card)
+        ], sm=12, md=6, lg=5),
+        dbc.Col([
+            dbc.Row([
+                dbc.Col([
+                    dbc.Card([
+                        dbc.CardBody([
+                            dcc.Graph(id="card1_indicators", config={"displayModeBar": False, "showTips": False}, style={"margin-top": "30px"})
+                        ])
+                    ], style=tab_card)
+                ])
+            ], justify="center", style={"padding-bottom": "7px", "height": "50%"}),
+            dbc.Row([
+                dbc.Col([
+                    dbc.Card([
+                        dbc.CardBody([
+                            dcc.Graph(id="card2_indicators", config={"displayModeBar": False, "showTips": False}, style={"margin-top": "30px"})
+                        ])
+                    ], style=tab_card)
+                ])
+            ], justify="center", style={"height": "50%"})
+        ], sm=12, lg=3, style={"height": "100%"})
+    ], class_name="g-2 my-auto"),
+
+    # -= LINHA 3 =- #
 
 ], fluid=True, style={"height": "100%"})
 
