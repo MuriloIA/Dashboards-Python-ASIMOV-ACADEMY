@@ -256,6 +256,30 @@ app.layout = dbc.Container(children=[
     ], class_name="g-2 my-auto"),
 
     # -= LINHA 3 =- #
+    dbc.Row([
+        dbc.Col([
+            dbc.Card([
+                dbc.CardBody([
+                    dbc.Row([
+                        dbc.Col([
+                            dcc.RangeSlider(
+                                id="rangeslider",
+                                marks={int(x): f'{x}' for x in dados["ANO"].unique()},
+                                step=3,
+                                min=2004,
+                                max=2021,
+                                className="dbc",
+                                value=[2004, 2021],
+                                dots=True,
+                                pushable=3,
+                                tooltip={"always_visible": False, "placement": "bottom"}
+                            )
+                        ], sm=12, md=10, style={"margin-top": "15px"}),
+                    ], style={"height": "20%", "justify-content": "center"})
+                ])
+            ], style=tab_card)
+        ])
+    ], class_name="g-2 my-auto")
 
 ], fluid=True, style={"height": "100%"})
 
