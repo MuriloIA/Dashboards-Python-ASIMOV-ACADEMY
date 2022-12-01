@@ -69,6 +69,20 @@ df_store = dados.to_dict()
 #######################################################################################
 # -= CONSTRUÇÃO DO LAYOUT DO DASHBOARD =-
 
+# Definindo os parâmetros gerais para todos os gráficos com plotly
+main_config = {
+    "hovermode": "x unified",
+    "legend": {
+        "yanchor": "top",
+        "y": 0.9,
+        "xanchor": "left",
+        "x": 0.1,
+        "title": {"text": None},
+        "font": {"color": "white"},
+        "bgcolor": "rgba(0, 0, 0, 0.5)"},
+    "margin": {"l": 0, "r": 0, "t": 10, "b": 0}
+}
+
 # Definindo um estilo para todos os cards
 tab_card = {"height": "100%"}
 
@@ -287,6 +301,108 @@ app.layout = dbc.Container(children=[
 #######################################################################################
 # -= CALLBACKS =-
 
+# Callback para o gráfico de Máximos e Mínimos
+@app.callback(
+    Output("static_maxmin", "figure"),
+    [
+        Input("dataset", "data"),
+        Input(ThemeSwitchAIO.ids.switch("theme"), "value")
+    ]
+)
+def func(data, toggle):
+
+    # Instanciando o template selecionado pelo usuário
+    template = template_theme1 if toggle else template_theme2
+    
+    # Transformando o dicionário de dados em um DataFrame 
+    df = pd.DataFrame(data)
+
+    # Máximos e Mínimos por ano
+    max = df.groupby(["ANO"])["VALOR REVENDA (R$/L)"].max()
+    min = df.groupby(["ANO"])["VALOR REVENDA (R$/L)"].min()
+
+    # Concatenando os dados de máximos e mínimos criados acima
+    final_df = pd.concat([max, min], axis=1)
+    final_df.columns = ["Máximo", "Mínimo"]
+
+    # Criando Gráfico de Linha
+    fig = px.line(data_frame=final_df, x=final_df.index, y=final_df.columns, template=template)
+    fig.update_layout(main_config, height=150, xaxis_title=None, yaxis_title=None)
+
+    # Retornando o gráfico de linha
+    return fig
+
+# Callback para o gráfico de barras horizontais
+@app.callback(
+    [
+        Output("regiaobar_graph", "figure"),
+        Output("estadobar_graph", "figure")
+    ],
+    [
+        Input("dataset_fixed", "data"),
+        Input("select_ano", "value"),
+        Input("select_regiao", "value"),
+        Input(ThemeSwitchAIO.ids.switch("theme"), "value")
+    ]
+)
+def graph1(data, ano, regiao, toggle):
+
+    # Instanciando o template selecionado pelo usuário
+    template = template_theme1 if toggle else template_theme2
+
+    # Transformando o dicionário de dados em um DataFrame do Pandas
+    df = pd.DataFrame(data)
+
+    # Selecionando os dados segundo o Ano selecionado no DropDawn pelo usuário
+    df_filtred = df[df["ANO"].isin([ano])]
+
+    # Selecionando e agrupando os dados por região e estado
+    df_regiao = df_filtred.groupby(["ANO", "REGIÃO"])["VALOR REVENDA (R$/L)"].mean().reset_index()
+    df_estado = df_filtred.groupby(["ANO", "ESTADO", "REGIÃO"])["VALOR REVENDA (R$/L)"].mean().reset_index()
+    df_estado = df_estado[df_estado["REGIÃO"].isin([regiao])]
+
+    # Reordenando os dados
+    df_regiao = df_regiao.sort_values(by=["VALOR REVENDA (R$/L)"], ascending=True)
+    df_estado = df_estado.sort_values(by=["VALOR REVENDA (R$/L)"], ascending=True)
+
+    # Arredondando para 2 casas decimais após a vírgula
+    df_regiao["VALOR REVENDA (R$/L)"] = df_regiao["VALOR REVENDA (R$/L)"].round(decimals=2)
+    df_estado["VALOR REVENDA (R$/L)"] = df_estado["VALOR REVENDA (R$/L)"].round(decimals=2)
+
+    # Textos para a figura
+    fig1_text = [f"{x} - R${y}" for x, y in zip(df_regiao["REGIÃO"].unique(), df_regiao["VALOR REVENDA (R$/L)"].unique())]
+    fig2_text = [f"R${y} - {x}" for x, y in zip(df_estado["ESTADO"].unique(), df_estado["VALOR REVENDA (R$/L)"].unique())]
+
+    # Criando os gráficos de barras horizontais
+    
+    # Gráfico 1 - Região
+    fig1 = go.Figure(go.Bar(
+        x=df_regiao["VALOR REVENDA (R$/L)"],
+        y=df_regiao["REGIÃO"],
+        orientation="h",
+        text=fig1_text,
+        textposition="auto",
+        insidetextanchor="end",
+        insidetextfont=dict(family="Times", size=12)
+    ))
+
+    # Gráfico 2 - Estado
+    fig2 = go.Figure(go.Bar(
+        x=df_estado["VALOR REVENDA (R$/L)"],
+        y=df_estado["ESTADO"],
+        orientation="h",
+        text=fig2_text,
+        insidetextanchor="end",
+        insidetextfont=dict(family="Times", size=12)
+    ))
+
+    fig1.update_layout(main_config, yaxis={"showticklabels": False}, height=140, template=template)
+    fig2.update_layout(main_config, yaxis={"showticklabels": False}, height=140, template=template)
+    fig1.update_layout(xaxis_range=[df_regiao["VALOR REVENDA (R$/L)"].max(), df_regiao["VALOR REVENDA (R$/L)"].min() - 0.15])
+    fig2.update_layout(xaxis_range=[df_estado["VALOR REVENDA (R$/L)"].min() - 0.15, df_estado["VALOR REVENDA (R$/L)"].max()])
+
+    # Retornando os gráficos para exposição
+    return [fig1, fig2]
 
 
 #######################################################################################
