@@ -404,6 +404,167 @@ def graph1(data, ano, regiao, toggle):
     # Retornando os gráficos para exposição
     return [fig1, fig2]
 
+# Preço x Estado
+@app.callback(
+    Output("animation_graph", "figure"),
+    [
+        Input("dataset", "data"),
+        Input("select_estado0", "value"),
+        Input(ThemeSwitchAIO.ids.switch("theme"), "value")
+    ]
+)
+def animation(data, estados, toggle):
+
+    # Instanciando o layout selecionado pelo usuário
+    template = template_theme1 if toggle else template_theme2
+
+    # Transformando o dicionário de dados em um Dataframe do Pandas
+    df = pd.DataFrame(data)
+
+    # Selecionando as observações com os estados de interesse
+    mask = df["ESTADO"].isin(estados)
+
+    # Construção do Gráfico
+    fig = px.line(df[mask], x="DATA", y="VALOR REVENDA (R$/L)", color="ESTADO", template=template)
+    fig.update_layout(main_config, height=425, xaxis_title=None)
+
+    # Retornando o gráfico
+    return fig
+
+# grafico de comparação direta
+@app.callback(
+    [Output('direct_comparison_graph', 'figure'),
+    Output('desc_comparison', 'children')],
+    [Input('dataset', 'data'),
+    Input('select_estado1', 'value'),
+    Input('select_estado2', 'value'),
+    Input(ThemeSwitchAIO.ids.switch("theme"), "value")]
+)
+def func(data, est1, est2, toggle):
+    template = template_theme1 if toggle else template_theme2
+
+    dff = pd.DataFrame(data)
+    df1 = dff[dff.ESTADO.isin([est1])]
+    df2 = dff[dff.ESTADO.isin([est2])]
+    df_final = pd.DataFrame()
+    
+    df_estado1 = df1.groupby(pd.PeriodIndex(df1['DATA'], freq="M"))['VALOR REVENDA (R$/L)'].mean().reset_index()
+    df_estado2 = df2.groupby(pd.PeriodIndex(df2['DATA'], freq="M"))['VALOR REVENDA (R$/L)'].mean().reset_index()
+
+    df_estado1['DATA'] = pd.PeriodIndex(df_estado1['DATA'], freq="M")
+    df_estado2['DATA'] = pd.PeriodIndex(df_estado2['DATA'], freq="M")
+
+    df_final['DATA'] = df_estado1['DATA'].astype('datetime64[ns]')
+    df_final['VALOR REVENDA (R$/L)'] = df_estado1['VALOR REVENDA (R$/L)']-df_estado2['VALOR REVENDA (R$/L)']
+    
+    fig = go.Figure()
+    # Toda linha
+    fig.add_scattergl(name=est1, x=df_final['DATA'], y=df_final['VALOR REVENDA (R$/L)'])
+    # Abaixo de zero
+    fig.add_scattergl(name=est2, x=df_final['DATA'], y=df_final['VALOR REVENDA (R$/L)'].where(df_final['VALOR REVENDA (R$/L)'] > 0.00000))
+
+    # Updates
+    fig.update_layout(main_config, height=350, template=template)
+    fig.update_yaxes(range = [-0.7,0.7])
+
+    # Annotations pra mostrar quem é o mais barato
+    fig.add_annotation(text=f'{est2} mais barato',
+        xref="paper", yref="paper",
+        font=dict(
+            family="Courier New, monospace",
+            size=12,
+            color="#ffffff"
+            ),
+        align="center", bgcolor="rgba(0,0,0,0.5)", opacity=0.8,
+        x=0.1, y=0.75, showarrow=False)
+
+    fig.add_annotation(text=f'{est1} mais barato',
+        xref="paper", yref="paper",
+        font=dict(
+            family="Courier New, monospace",
+            size=12,
+            color="#ffffff"
+            ),
+        align="center", bgcolor="rgba(0,0,0,0.5)", opacity=0.8,
+        x=0.1, y=0.25, showarrow=False) 
+
+    # Definindo o texto
+    text = f"Comparando {est1} e {est2}. Se a linha estiver acima do eixo X, {est2} tinha menor preço, do contrário, {est1} tinha um valor inferior"
+    return [fig, text]
+
+# Indicator 1
+@app.callback(
+    Output("card1_indicators", "figure"),
+    [
+        Input("dataset", "data"),
+        Input("select_estado1", "value"),
+        Input(ThemeSwitchAIO.ids.switch("theme"), "value")
+    ]
+)
+def card1(data, estado, toggle):
+
+    # Definindo template selecionado pelo usuário
+    template = template_theme1 if toggle else template_theme2
+
+    # Transformando o dicionário de dados em um DataFrame do Pandas
+    df = pd.DataFrame(data)
+
+    # Selecionando apenas as observações referente ao estado selecionado
+    df_final = df[df["ESTADO"].isin([estado])]
+
+    data1 = str(int(df["ANO"].min()) - 1)
+    data2 = df["ANO"].max()
+
+    # Instanciando figura
+    fig = go.Figure()
+    fig.add_trace(go.Indicator(
+        mode="number+delta",
+        title={"text": f"<span style= 'size: 60%'>{estado}</span><br><span style= 'font-size: 0.7em'>{data1} - {data2}</span>"},
+        value=df_final.at[df_final.index[-1], 'VALOR REVENDA (R$/L)'],
+        number={'prefix': 'R$', 'valueformat': '.2f'},
+        delta={'relative': True, 'valueformat': '.1%', 'reference': df_final.at[df_final.index[0], 'VALOR REVENDA (R$/L)']}
+    ))
+    fig.update_layout(main_config, height=250, template=template)
+
+    # Retornando o card indicator
+    return fig
+
+# Card Indicator 2
+@app.callback(
+    Output("card2_indicators", "figure"),
+    [
+        Input("dataset", "data"),
+        Input("select_estado2", "value"),
+        Input(ThemeSwitchAIO.ids.switch("theme"), "value")
+    ]
+)
+def card2(data, estado, toggle):
+
+    # Instanciando o layout selecionado pelo usuário
+    template = template_theme1 if toggle else template_theme2
+
+    # Transformando o dicionário de dados em um DataFrame do Pandas
+    df = pd.DataFrame(data)
+    df_final = df[df["ESTADO"].isin([estado])]
+
+    data1 = str(int(df['ANO'].min()) - 1)
+    data2 = df["ANO"].max()
+
+    # Construindo o CardIndicators
+    fig = go.Figure()
+    fig.add_trace(go.Indicator(
+        mode="number+delta",
+        title={"text": f"<span style= 'size: 60%'>{estado}</span><br><span style= 'font-size: 0.7em'>{data1} - {data2}</span>"},
+        value=df_final.at[df_final.index[-1], 'VALOR REVENDA (R$/L)'],
+        number={"prefix": "R$", "valueformat": ".2f"},
+        delta={'relative': True, "valueformat": ".1%", "reference": df_final.at[df_final.index[0], "VALOR REVENDA (R$/L)"]}
+    ))
+    fig.update_layout(main_config, height=250, template=template)
+
+    # Retornando o card
+    return fig
+
+
 
 #######################################################################################
 # -= END =-
