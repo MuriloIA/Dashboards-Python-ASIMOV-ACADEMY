@@ -564,6 +564,24 @@ def card2(data, estado, toggle):
     # Retornando o card
     return fig
 
+# Callback - RangerSlider
+@app.callback(
+    Output("dataset", "data"),
+    [
+        Input("rangeslider", "value"),
+        Input("dataset_fixed", "data")
+
+    ]
+, prevent_initial_call=True)
+def range_slider(range, data):
+
+    # Transformando o dicionário de dados em um DataFrame do Pandas
+    df = pd.DataFrame(data)
+    df = df[(df['ANO'] > f'{range[0]}-01-01') & (df['ANO'] <= f'{range[1]}-31-12')]
+    data = df.to_dict()
+
+    # Retornando apenas as observações dentro do intervalo do RangeSlider selecionado pelo usuário
+    return data
 
 
 #######################################################################################
