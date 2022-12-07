@@ -2,6 +2,7 @@
 # -= PACOTES UTILIZADOS =- #
 
 # Carga, manipulação e operação com matrizes de dados
+import json
 import numpy as np
 import pandas as pd
 
@@ -18,6 +19,19 @@ from dash import Dash, html, dcc, Input, Output
 #################################################################################
 # -= CARGA E MANIPULAÇÃO DO CONJUNTO DE DADOS =- #
 
+# Carga dos dados
+df_states = pd.read_csv("https://raw.githubusercontent.com/asimov-academy/Dashboards/main/dashboard-covid-19/df_states.csv")
+df_brasil = pd.read_csv("https://raw.githubusercontent.com/asimov-academy/Dashboards/main/dashboard-covid-19/df_brasil.csv")
+
+brazil_states = json.load(open("geojson/brazil_geo.json", "r"))
+
+brazil_states["features"][0].keys()
+
+df_states_ = df_states[df_states["data"] == "2020-05-13"]
+select_columns = {"casosAcumulado": "Casos Acumulados", 
+                "casosNovos": "Novos Casos", 
+                "obitosAcumulado": "Óbitos Totais",
+                "obitosNovos": "Óbitos por dia"}
 
 #################################################################################
 # -= LAYOUT DO DASHBOARD =- #
