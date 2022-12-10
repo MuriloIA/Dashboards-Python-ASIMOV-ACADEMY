@@ -126,7 +126,8 @@ app.layout = dbc.Container(children=[
                     ], style={"magin-top": "10px"}),
                     dbc.Row([
                         dbc.Button(children="Visite o Site", href="https://asimov.academy/", target="_blank")
-                    ], style={"margin-top": "10px"})
+                    ], style={"margin-top": "10px"}),
+                    html.P(children="© Murilo Rocha", style={"text-align": "center"})
                 ])
             ], style=tab_card)
         ], sm=4, lg=2),
@@ -587,4 +588,4 @@ def range_slider(range, data):
 #######################################################################################
 # -= END =-
 if __name__ == "__main__":
-    app.run_server(debug=True)
+    app.run_server(debug=False)
