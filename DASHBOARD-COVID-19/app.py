@@ -51,7 +51,11 @@ app = Dash(__name__, external_stylesheets=[dbc.themes.CYBORG])
 # Criando Layout
 app.layout = dbc.Container(children=[
 
-
+    dbc.Row([
+        dbc.Col([
+            dcc.Graph(id="choropleth-map", figure=fig)
+        ])
+    ])
 
 ], fluid=True, style={"height": "100%"})
 
